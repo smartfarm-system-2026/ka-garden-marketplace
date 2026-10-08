@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>K & A Garden Marketplace</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f4; margin: 0; padding: 20px; }
+        header { background: #2e7d32; color: white; padding: 20px; text-align: center; border-radius: 8px; }
+        .box { background: white; padding: 20px; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 8px; margin: 5px 0 15px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #388e3c; color: white; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 15px; }
+        .card img { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; }
+        footer { text-align: center; margin-top: 40px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>K & A Garden Marketplace</h1>
+    <p>Open Marketplace para sa mga Buwakan</p>
+</header>
+
+<div class="box">
+    <h2>I-post ang Imong Buwak</h2>
+    <form id="flowerForm">
+        <label>Imong Pangalan (Seller):</label>
+        <input type="text" id="seller_name" required placeholder="Alfrancis">
+        
+        <label>Pangalan sa Buwak:</label>
+        <input type="text" id="flower_name" required placeholder="Red Rose">
+        
+        <label>Klase sa Buwak:</label>
+        <input type="text" id="flower_type" required placeholder="Ornamental">
+        
+        <label>Edad:</label>
+        <input type="text" id="age" required placeholder="2 months">
+        
+        <label>Stocks:</label>
+        <input type="number" id="stocks" required placeholder="10">
+        
+        <label>Lokasyon:</label>
+        <input type="text" id="location" required placeholder="Ubay, Bohol">
+        
+        <label>Contact Number:</label>
+        <input type="text" id="contact_number" required placeholder="09123456789">
+        
+        <label>Image Link (URL):</label>
+        <input type="text" id="image_url" required placeholder="I-paste ang link sa hulagway diri">
+        
+        <button type="submit">I-publish ang Buwak</button>
+    </form>
+</div>
+
+<div class="box">
+    <h2>Mga Buwak nga Alang sa Baligya</h2>
+    <div class="grid" id="flowerGrid"><p>Nag-load...</p></div>
+</div>
+
+<footer>
+    <p>K & A Garden Marketplace &copy; 2026 | Developed by: <b>Alfrancis A. Sastrillas</b></p>
+</footer>
+
+<script>
+    const SUPABASE_URL = 'https://pvfhmhfboffbkklisjg.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_kZRD-S7Rp6tgdF4x3TRBPw_mfEzcRxa';
+    
+    const { createClient } = supabase;
+    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function fetchFlowers() {
+        const { data } = await _supabase.from('flowers').select('*').order('id', { ascending: false });
+        const grid = document.getElementById('flowerGrid');
+        grid.innerHTML = '';
+        if (!data || data.length === 0) {
+            grid.innerHTML = '<p>Wala pa\'y buwak.</p>';
+            return;
+        }
+        data.forEach(row => {
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${row.image_url}" onerror="this.src='https://via.placeholder.com/250?text=No+Image'">
+                    <h3>${row.flower_name}</h3>
+                    <p><b>Klase:</b> ${row.flower_type}</p>
+                    <p><b>Edad:</b> ${row.age}</p>
+                    <p><b>Stocks:</b> ${row.stocks}</p>
+                    <p><b>Lokasyon:</b> ${row.location}</p>
+                    <p><b>Contact:</b> ${row.seller_name} (${row.contact_number})</p>
+                </div>
+            `;
+        });
+    }
+
+    document.getElementById('flowerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newFlower = {
+            seller_name: document.getElementById('seller_name').value,
+            flower_name: document.getElementById('flower_name').value,
+            flower_type: document.getElementById('flower_type').value,
+            age: document.getElementById('age').value,
+            stocks: parseInt(document.getElementById('stocks').value),
+            location: document.getElementById('location').value,
+            contact_number: document.getElementById('contact_number').value,
+            image_url: document.getElementById('image_url').value
+        };
+        const { error } = await _supabase.from('flowers').insert([newFlower]);
+        if (error) {
+            alert('Wala na-save: ' + error.message);
+        } else {
+            alert('Yehey! Na-publish na.');
+            document.getElementById('flowerForm').reset();
+            fetchFlowers();
+        }
+    });
+
+    fetchFlowers();
+</script>
+
+</body>
+</html>
