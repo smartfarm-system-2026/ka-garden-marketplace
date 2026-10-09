@@ -157,7 +157,8 @@ footer a{color:#ffe0e8}
 "use strict";
 
 // Supabase project configuration
-const SUPABASE_URL = "https://pvfhmhfboffbkklisjg.supabase.co";
+// FIXED: the project ID now has the missing "t" (pvfhmhfbtoffbkklisjg)
+const SUPABASE_URL = "https://pvfhmhfbtoffbkklisjg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_kZRD-S7Rp6tgdF4x3TRBPw_mfEzcRxa";
 const FLOWER_BUCKET = "flower-images";
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -267,26 +268,28 @@ function renderFlowers() {
 async function loadFlowers() {
   flowerGrid.innerHTML = "<p>🌱 Loading flowers...</p>";
 
-  const { data, error } = await db
-    .from("flowers")
-    .select("*")
-    .order("id", { ascending: false });
+  try {
+    const { data, error } = await db
+      .from("flowers")
+      .select("*")
+      .order("id", { ascending: false });
 
-  if (error) {
-    console.error(error);
+    if (error) throw error;
+
+    allFlowers = data || [];
+    renderFlowers();
+  } catch (error) {
+    console.error("Load error:", error);
     flowerGrid.innerHTML =
-      "<p>Could not load flowers. Check your internet connection and Supabase table permissions.</p>";
-    return;
+      "<p>Could not load flowers. Check your internet connection and Supabase settings.</p>";
   }
-
-  allFlowers = data || [];
-  renderFlowers();
 }
 
 flowerImageInput.addEventListener("change", () => {
   const file = flowerImageInput.files[0];
 
   if (previewURL) URL.revokeObjectURL(previewURL);
+  previewURL = null;
   flowerPreview.hidden = true;
   flowerPreview.removeAttribute("src");
 
@@ -377,6 +380,8 @@ flowerForm.addEventListener("submit", async event => {
       .insert([flower]);
 
     if (insertError) {
+      // Remove the uploaded photo so no unused files are left behind
+      await db.storage.from(FLOWER_BUCKET).remove([uploadedPath]).catch(() => {});
       throw new Error("Flower details could not be saved: " + insertError.message);
     }
 
