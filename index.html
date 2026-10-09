@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>K &amp; A Garden Marketplace</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
+<script>
+  if (!window.supabase) {
+    document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+  }
+</script><style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;color:#354236;background:linear-gradient(135deg,#fffaf5,#edf6e8,#fff0f5);min-height:100vh}
 nav{padding:18px 5%;display:flex;justify-content:space-between;align-items:center;background:#fff;box-shadow:0 3px 15px #0001;position:sticky;top:0}
@@ -194,7 +198,7 @@ function updateStats() {
 
 function createInfo(label, value) {
   const p = document.createElement("p");
-  p.textContent = label + ": " + (value || "Not specified");
+p.textContent = label + ": " + ((value === null || value === undefined || value === "") ? "Not specified" : value);
   return p;
 }
 
